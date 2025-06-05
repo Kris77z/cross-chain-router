@@ -99,59 +99,7 @@ cross-chain-router/
 - **错误处理**：自定义异常类
 - **模块化设计**：功能分离的模块架构
 
-## 🚀 快速开始
-
-### 环境要求
-- Node.js 18+
-- Python 3.8+
-- npm 或 yarn
-
-### 1. 克隆项目
-```bash
-git clone https://github.com/Kris77z/cross-chain-router.git
-cd cross-chain-router
-```
-
-### 2. 后端设置
-```bash
-cd backend
-python -m venv venv
-source venv/bin/activate  # Windows: venv\Scripts\activate
-pip install -r requirements.txt
-
-# 启动后端服务
-uvicorn main:app --reload --port 3001
-```
-
-### 3. 前端设置
-```bash
-cd frontend
-npm install
-
-# 启动前端开发服务器
-npm run dev
-```
-
-### 4. 访问应用
-- **前端应用**：http://localhost:3000
-- **后端API**：http://localhost:3001
-- **API文档**：http://localhost:3001/docs
-- **ReDoc文档**：http://localhost:3001/redoc
-
 ## 📋 功能详情
-
-### 支持的区块链网络
-- **以太坊生态**：Ethereum、Optimism、Arbitrum、Base、zkSync Era、Linea、Scroll
-- **BSC生态**：BNB Chain
-- **Polygon生态**：Polygon
-- **Avalanche生态**：Avalanche C-Chain
-- **其他主流链**：Solana、TRON、Aptos、SUI、Manta Pacific、Metis等
-
-### 支持的桥协议
-- **LayerZero系列**：Stargate、LayerZero
-- **多链桥**：Multichain、Cbridge
-- **专业桥**：Hop、Across、Synapse
-- **新兴桥**：Bridgers、ButterSwap、MetaPath
 
 ### 路由排序算法
 1. **最优排序**：综合考虑接收数量、费用、时间的最佳平衡
@@ -243,32 +191,6 @@ API_TIMEOUT=30
 - **API端点**：15+ RESTful API
 - **UI组件**：基于shadcn/ui的完整组件库
 
-## 🛠️ 开发说明
-
-### 添加新的区块链网络
-1. 在 `okx_crosschain_sdk/asset_explorer.py` 中添加链信息
-2. 在前端 `FALLBACK_CHAIN_ICONS` 中添加链图标
-3. 更新 `NATIVE_TOKENS` 映射
-
-### 添加新的桥协议
-在 `backend/routers/quote.py` 中的 `BRIDGE_LOGOS` 字典添加：
-```python
-BRIDGE_LOGOS = {
-    "new_bridge": "https://newbridge.com/logo.png",
-    # ... 其他桥
-}
-```
-
-### 自定义排序逻辑
-在前端 `sortQuotes` 函数中添加新的排序类型：
-```typescript
-case "custom":
-  sorted.sort((a, b) => {
-    // 自定义排序逻辑
-    return customSortLogic(a, b);
-  });
-  break;
-```
 
 ## 📈 性能优化
 
@@ -278,82 +200,12 @@ case "custom":
 - 📱 **响应式图片**：自适应图片加载
 - 🔄 **优雅降级**：图片加载失败时的文字显示
 
-## 🐛 故障排除
 
-### 常见问题
-
-1. **代币列表为空**
-   - 检查链ID是否正确
-   - 确认网络连接正常
-   - 查看后端日志：`uvicorn main:app --log-level debug`
-
-2. **报价获取失败**
-   - 验证代币地址格式
-   - 检查金额是否合理
-   - 确认链之间支持跨链
-
-3. **图片加载失败**
-   - 应用会自动降级显示文字
-   - 检查网络连接
-   - 确认图片URL有效性
-
-### 调试模式
-```bash
-# 后端调试
-cd backend
-uvicorn main:app --reload --log-level debug --port 3001
-
-# 前端调试
-cd frontend
-npm run dev -- --turbopack
-```
-
-## 🚧 开发路线图
-
-### 即将推出
-- [ ] 钱包连接集成
-- [ ] 交易历史记录
-- [ ] 价格图表显示
-- [ ] 多语言支持
-- [ ] 移动端App
-
-### 长期规划
-- [ ] DeFi协议集成
-- [ ] NFT跨链支持
-- [ ] 高级交易策略
-- [ ] 社区治理功能
-
-## 🤝 贡献指南
-
-1. Fork 项目
-2. 创建功能分支 (`git checkout -b feature/AmazingFeature`)
-3. 提交更改 (`git commit -m 'Add some AmazingFeature'`)
-4. 推送到分支 (`git push origin feature/AmazingFeature`)
-5. 开启 Pull Request
-
-### 代码规范
-- **前端**：遵循 ESLint 配置
-- **后端**：遵循 PEP 8 规范
-- **提交信息**：使用语义化提交格式
 
 ## 📄 许可证
 
 本项目采用 MIT 许可证 - 查看 [LICENSE](LICENSE) 文件了解详情。
 
-## 🙏 致谢
-
-- [OKX](https://www.okx.com/) - 提供强大的DEX API
-- [Next.js](https://nextjs.org/) - React 框架
-- [FastAPI](https://fastapi.tiangolo.com/) - 现代Python Web框架
-- [Tailwind CSS](https://tailwindcss.com/) - CSS框架
-- [shadcn/ui](https://ui.shadcn.com/) - UI组件库
-- [Radix UI](https://www.radix-ui.com/) - 无障碍UI组件
-
-## 📞 联系方式
-
-- **GitHub**：[Kris77z/cross-chain-router](https://github.com/Kris77z/cross-chain-router)
-- **Issues**：[提交问题](https://github.com/Kris77z/cross-chain-router/issues)
-- **Discussions**：[参与讨论](https://github.com/Kris77z/cross-chain-router/discussions)
 
 ---
 
