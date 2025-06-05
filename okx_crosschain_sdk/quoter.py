@@ -7,6 +7,9 @@ class Quoter:
     跨链询价模块。
     用于根据用户输入获取OKX DEX跨链交易的最佳路径和报价。
     """
+    API_VERSION_PATH = "/api/v5"
+    MODULE_BASE_PATH = "/dex/cross-chain"
+
     def __init__(self, config: Config = None):
         """
         初始化 Quoter。
@@ -15,7 +18,10 @@ class Quoter:
             config: SDK的配置实例。如果为None，则使用默认配置。
         """
         self.config = config if config else get_default_config()
-        self.base_endpoint = "/dex/cross-chain" # 基础路径
+
+    def _get_full_endpoint(self, specific_path: str) -> str:
+        """ 构建完整的API endpoint路径，包含版本和模块基础路径。 """
+        return f"{self.API_VERSION_PATH}{self.MODULE_BASE_PATH}{specific_path}"
 
     def get_quote(
         self,
@@ -30,7 +36,8 @@ class Quoter:
         gas_price: Optional[str] = None, # e.g., "10000000000" for 10 Gwei
         quote_type: Optional[Literal["exactIn", "exactOut"]] = "exactIn",
         auto_slippage: Optional[bool] = False,
-        preference: Optional[Literal["price", "speed"]] = None
+        preference: Optional[Literal["price", "speed"]] = None,
+        sort: Optional[int] = None  # 0: 最多代币, 1: 最优路由(默认), 2: 最快路由
     ) -> List[Dict[str, Any]]: # API 通常在 data 字段返回一个路由列表
         """
         获取跨链交易的路径和报价信息。
@@ -51,6 +58,7 @@ class Quoter:
             quote_type: (可选) 报价类型，"exactIn" (默认) 或 "exactOut"。
             auto_slippage: (可选) 是否使用推荐滑点，默认为 false。
             preference: (可选) 偏好设置，"price" (价格最优) 或 "speed" (速度最快)。
+            sort: (可选) 路由类型，0: 最多代币, 1: 最优路由(默认), 2: 最快路由。
 
         Returns:
             一个包含路由和报价信息的字典列表。通常，如果找到路径，列表的第一个元素是最优路径。
@@ -76,7 +84,7 @@ class Quoter:
         if not all([from_chain_id, to_chain_id, from_token_address, to_token_address, amount]):
             raise ValueError("参数 from_chain_id, to_chain_id, from_token_address, to_token_address, amount 不能为空")
 
-        endpoint = f"{self.base_endpoint}/quote"
+        endpoint = self._get_full_endpoint("/quote")
         
         params = {
             "fromChainId": from_chain_id,
@@ -85,7 +93,8 @@ class Quoter:
             "toTokenAddress": to_token_address,
             "amount": amount,
             "quoteType": quote_type,
-            "autoSlippage": str(auto_slippage).lower() # API期望字符串 "true"/"false"
+            "autoSlippage": str(auto_slippage).lower(), # API期望字符串 "true"/"false"
+            "sort": sort
         }
 
         if user_address: params["userAddress"] = user_address
@@ -93,6 +102,7 @@ class Quoter:
         if receiver: params["receiver"] = receiver
         if gas_price: params["gasPrice"] = gas_price
         if preference: params["preference"] = preference
+        if sort is not None: params["sort"] = str(sort)  # 确保sort为0时也能传递
         
         try:
             response_json = make_request(
@@ -106,13 +116,20 @@ class Quoter:
             if 'data' in response_json and isinstance(response_json['data'], list):
                 return response_json['data']
             # 如果 data 是 null 但 code 是 0，表示没有找到路由
-            elif 'data' in response_json and response_json['data'] is None and response_json.get('code') == '0':
+            elif 'data' in response_json and response_json['data'] is None and response_json.get('code') == '0' and response_json.get('sCode') == '0': # 正常无路由也可能是sCode 0
                 return [] # 返回空列表表示没有找到路径/报价
             else:
+                # 对于 /quote, 我们在 http_client 中增加了对 sCode != '0' 的特殊错误处理，所以这里可以简化
+                # 如果 http_client 那里没有因 sCode 抛出错误，且 data 不是 list，则认为是格式问题
+                if not ('data' in response_json and isinstance(response_json['data'], list)):
+                    # 如果 code 为 '0' 但 data 格式不符 (例如 data 为 null 但 sCode 也为 0，或者 data 为其他非 list 类型)
+                    if response_json.get('code') == '0' and response_json.get('sCode') == '0' and response_json.get('data') is None:
+                        return [] # 明确处理无有效路由但API未报错的情况
                 raise APIError(
                     message=f"API响应格式错误或未找到报价信息: {endpoint}",
                     response_data=response_json
                 )
+                return response_json['data'] # Fallback, 应该被前面的条件覆盖
         except APIError as e:
             # print(f"获取报价时发生错误: {e}")
             raise

@@ -7,6 +7,9 @@ class TransactionBuilder:
     交易构建模块。
     负责获取构建授权交易和实际跨链交易所需的数据。
     """
+    API_VERSION_PATH = "/api/v5"
+    MODULE_BASE_PATH = "/dex/cross-chain"
+
     def __init__(self, config: Config = None):
         """
         初始化 TransactionBuilder。
@@ -15,7 +18,10 @@ class TransactionBuilder:
             config: SDK的配置实例。如果为None，则使用默认配置。
         """
         self.config = config if config else get_default_config()
-        self.base_endpoint = "/dex/cross-chain" # 基础路径
+
+    def _get_full_endpoint(self, specific_path: str) -> str:
+        """ 构建完整的API endpoint路径，包含版本和模块基础路径。 """
+        return f"{self.API_VERSION_PATH}{self.MODULE_BASE_PATH}{specific_path}"
 
     def get_approve_transaction_data(
         self,
@@ -37,7 +43,7 @@ class TransactionBuilder:
         if not route_data:
             raise ValueError("route_data 参数不能为空")
 
-        endpoint = f"{self.base_endpoint}/approve-transaction"
+        endpoint = self._get_full_endpoint("/approve-transaction")
         request_body = route_data.copy()
 
         try:
@@ -93,7 +99,7 @@ class TransactionBuilder:
         if not route_data:
             raise ValueError("route_data 参数不能为空")
 
-        endpoint = f"{self.base_endpoint}/build-tx"
+        endpoint = self._get_full_endpoint("/build-tx")
         
         # API期望整个路由对象作为请求体，并可能包含额外的txId或gasPrice
         request_body = route_data.copy() # 复制以避免修改原始对象

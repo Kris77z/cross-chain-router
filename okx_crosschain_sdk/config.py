@@ -4,25 +4,37 @@ class Config:
     """
     SDK配置类，用于存储和管理SDK的全局设置。
     """
-    # OKX API 的基础URL
+    # OKX API 的主机URL
     BASE_API_URL = "https://web3.okx.com"
 
-    # API 版本路径 (根据实际API调整，例如 /api/v5)
-    API_VERSION_PATH = "/api/v5"
+    # API_VERSION_PATH 不再需要，因为调用方会提供完整的endpoint路径，如 /api/v5/...
+    # BASE_URL property 也不再需要
 
-    # 完整的API端点基础
-    @property
-    def full_base_url(self):
-        return f"{self.BASE_API_URL}{self.API_VERSION_PATH}"
-
-    # 未来可以添加 API Key, Secret Key, Passphrase 等
-    # API_KEY = None
-    # SECRET_KEY = None
-    # PASSPHRASE = None
-    # PROJECT_ID = None # 有些API示例中提到了 OK-ACCESS-PROJECT
+    # API 认证相关
+    API_KEY: str = None
+    SECRET_KEY: str = None
+    PASSPHRASE: str = None
 
     # 请求超时时间 (秒)
-    TIMEOUT = 30
+    TIMEOUT: int = 30
+
+    def __init__(self, api_key: str = None, secret_key: str = None, passphrase: str = None, timeout: int = 30):
+        """
+        初始化Config对象。
+
+        Args:
+            api_key: 您的OKX API Key。
+            secret_key: 您的OKX API Secret Key。
+            passphrase: 您的OKX API Passphrase。
+            timeout: 请求超时时间（秒）。
+        """
+        if api_key:
+            self.API_KEY = api_key
+        if secret_key:
+            self.SECRET_KEY = secret_key
+        if passphrase:
+            self.PASSPHRASE = passphrase
+        self.TIMEOUT = timeout
 
 def get_default_config():
     """

@@ -1,289 +1,360 @@
-# OKX DEX 跨链 SDK (非官方)
+# OKX 跨链桥应用
 
-__version__ = "0.0.1"
+基于 OKX DEX API 的跨链桥应用，提供安全、快速的跨链资产转移服务。
 
-## 1. 项目目标
+## 🎯 项目概述
 
-本项目旨在基于欧易（OKX）DEX 提供的跨链 API ([https://web3.okx.com/zh-hans/build/dev-docs/dex-api/dex-cross-chain-api-introduction](https://web3.okx.com/zh-hans/build/dev-docs/dex-api/dex-cross-chain-api-introduction)) 封装一个非官方的Python软件开发工具包 (SDK)。
+本项目是一个完整的跨链桥解决方案，包含：
+- **前端应用**：基于 Next.js 14 + React 19 的现代化Web界面
+- **后端API**：基于 FastAPI 的高性能后端服务
+- **SDK封装**：对 OKX DEX API 的完整Python封装
 
-主要目标包括：
+## 🚀 已完成功能
 
-*   **简化集成**：为开发者提供一个比直接调用 HTTP API 更易用、更友好的接口，方便将其集成到自己的交易系统或其他应用中。
-*   **增强路由发现**：致力于通过灵活的参数配置和对 API 响应的细致处理，辅助用户发现OKX X-Routing算法提供的更全面的跨链交易路径，旨在解决官方前端可能存在的某些可行路径未显示的问题。
-*   **提升开发效率**：封装底层的API调用、参数处理、错误处理等通用逻辑，提供清晰的模块化结构。
+### ✅ 核心功能
+- **多链支持**：支持20+主流区块链网络（以太坊、BSC、Polygon、Arbitrum、Optimism等）
+- **智能路由**：基于OKX X-Routing算法的最优路径发现
+- **实时询价**：获取多个桥协议的实时报价和费用对比
+- **路由排序**：支持最优、最快、数量最多三种排序模式
+- **费用透明**：详细的费用分解（Gas费、桥接费、总费用）
+- **安全评级**：显示每个路由的安全评级和风险评估
+- **交易预估**：准确的交易时间和最小接收数量预估
+- **滑点保护**：可配置的滑点容忍度设置
 
-## 2. 与官方SDK的关系
+### ✅ 用户体验
+- **响应式设计**：完美适配桌面和移动设备
+- **智能搜索**：支持代币名称和地址搜索
+- **实时状态**：交易状态实时追踪
+- **错误处理**：友好的错误提示和处理
+- **加载状态**：优雅的加载动画和状态指示
+- **代币图标**：自动获取和显示代币Logo
 
-我们注意到OKX官方提供了一个 `@okx-dex/okx-dex-sdk` ([https://web3.okx.com/zh-hans/build/dev-docs/dex-api/dex-use-swap-solana-quick-start](https://web3.okx.com/zh-hans/build/dev-docs/dex-api/dex-use-swap-solana-quick-start))，该SDK主要侧重于**单一区块链内**的代币兑换功能。
+### ✅ 技术特性
+- **TypeScript**：全栈TypeScript开发，类型安全
+- **现代UI**：基于shadcn/ui的现代化组件库
+- **API缓存**：智能的数据缓存机制，减少重复请求
+- **错误恢复**：图片加载失败时的优雅降级
+- **CORS支持**：完整的跨域资源共享配置
+- **环境配置**：支持多环境配置管理
 
-本SDK项目则专注于OKX的**跨链交易HTTP API**，旨在提供一个专门针对跨链场景的Python解决方案。如果未来OKX发布了官方的Python跨链SDK，我们将评估其功能，并可能调整本项目的方向。
+## 🏗️ 项目架构
 
-## 3. SDK架构
+```
+cross-chain-router/
+├── frontend/                 # Next.js 前端应用
+│   ├── src/
+│   │   ├── components/       # React 组件
+│   │   │   ├── ui/          # shadcn/ui 基础组件
+│   │   │   └── CrossChainBridge.tsx  # 主要跨链桥组件 (1190行)
+│   │   ├── app/             # Next.js 应用路由
+│   │   └── lib/             # 工具函数
+│   ├── package.json         # 前端依赖配置
+│   └── tailwind.config.js   # Tailwind CSS 配置
+├── backend/                  # FastAPI 后端服务
+│   ├── routers/             # API 路由模块
+│   │   ├── chains.py        # 链信息 API
+│   │   ├── tokens.py        # 代币信息 API
+│   │   ├── quote.py         # 询价 API
+│   │   ├── transaction.py   # 交易构建 API
+│   │   └── status.py        # 状态追踪 API
+│   ├── main.py              # FastAPI 应用入口 (137行)
+│   ├── requirements.txt     # Python 依赖
+│   └── env.example          # 环境变量示例
+├── okx_crosschain_sdk/      # OKX SDK 封装 (完整实现)
+│   ├── __init__.py          # SDK 入口和导出
+│   ├── config.py            # 配置管理 (46行)
+│   ├── http_client.py       # HTTP 客户端 (178行)
+│   ├── asset_explorer.py    # 资产浏览器 (186行)
+│   ├── quoter.py           # 询价器 (176行)
+│   ├── transaction_builder.py # 交易构建器 (211行)
+│   ├── status_tracker.py    # 状态追踪器 (129行)
+│   ├── onchain_gateway.py   # 链上网关 (134行)
+│   └── README.md           # SDK 详细文档 (685行)
+└── README.md               # 项目主文档
+```
 
-SDK的核心将围绕OKX跨链API的主要流程进行设计，包含以下主要模块：
+## 🛠️ 技术栈
 
-*   **`Config` (配置类)**
-    *   用途：管理API基础URL、API版本、请求超时时间等全局配置。
-    *   定义于：`okx_crosschain_sdk/config.py`
+### 前端技术栈
+- **框架**：Next.js 14 (App Router)
+- **UI库**：React 19
+- **样式**：Tailwind CSS 4.0
+- **组件库**：shadcn/ui + Radix UI
+- **图标**：Lucide React
+- **类型**：TypeScript 5
+- **构建**：Turbopack (开发模式)
 
-*   **`APIError` (自定义异常类)**
-    *   用途：统一封装SDK中发生的API请求错误和业务逻辑错误。
-    *   定义于：`okx_crosschain_sdk/http_client.py`
+### 后端技术栈
+- **框架**：FastAPI 0.104.1
+- **服务器**：Uvicorn (ASGI)
+- **数据验证**：Pydantic 2.5
+- **HTTP客户端**：Requests 2.31
+- **环境管理**：python-dotenv
+- **CORS**：FastAPI CORS中间件
 
-*   **`AssetExplorer` (资产与链信息模块)**
-    *   用途：查询OKX DEX支持的跨链网络、代币信息、项目方配置代币和桥信息。
-    *   对应API：
-        *   `/api/v5/dex/cross-chain/supported-chain` (获取支持的链)
-        *   `/api/v5/dex/cross-chain/token-list` (获取币种列表)
-        *   `/api/v5/dex/cross-chain/configured-token-list` (获取项目方配置的币种列表)
-        *   `/api/v5/dex/cross-chain/bridge-info` (获取支持的桥信息)
-    *   实现于：`okx_crosschain_sdk/asset_explorer.py`
+### SDK技术栈
+- **语言**：Python 3.8+
+- **HTTP客户端**：Requests
+- **配置管理**：环境变量 + 类配置
+- **错误处理**：自定义异常类
+- **模块化设计**：功能分离的模块架构
 
-*   **`Quoter` (询价模块)**
-    *   用途：核心模块，根据用户指定的源链、目标链、代币、金额等信息，调用OKX API获取最优的跨链路径和报价。这是实现"智能路由"的关键部分。
-    *   对应API： `/api/v5/dex/cross-chain/quote` (获取路径信息/询价)
-    *   实现于：`okx_crosschain_sdk/quoter.py`
+## 🚀 快速开始
 
-*   **`TransactionBuilder` (交易构建模块)**
-    *   用途：根据询价模块 (`Quoter`) 返回的选定路由信息，生成进行链上交互（如ERC20代币授权、执行实际跨链交易）所需的数据。
-    *   对应API：
-        *   `/api/v5/dex/cross-chain/approve-transaction` (获取授权交易数据)
-        *   `/api/v5/dex/cross-chain/build-tx` (获取跨链兑换交易数据)
-    *   实现于：`okx_crosschain_sdk/transaction_builder.py`
+### 环境要求
+- Node.js 18+
+- Python 3.8+
+- npm 或 yarn
 
-*   **`StatusTracker` (交易状态追踪模块)**
-    *   用途：根据OKX API返回的内部交易ID (`txId`) 查询跨链交易的执行状态。
-    *   对应API： `/api/v5/dex/cross-chain/status` (查询交易状态)
-    *   实现于：`okx_crosschain_sdk/status_tracker.py`
-
-*   内部辅助模块：
-    *   `http_client.py`: 包含 `make_request` 函数，负责所有底层的HTTP请求发送、响应处理和基础错误检查。
-
-## 4. 核心功能与特点
-
-*   **全面的资产信息查询**：轻松获取所有支持的链、代币、项目方配置代币及桥信息。
-*   **智能跨链询价**：通过灵活的参数组合调用 `/quote` 接口，获取OKX X-Routing提供的最佳交易方案，包括复杂的 "源链Swap + Bridge + 目标链Swap" 路径。
-*   **便捷的交易构建**：简化获取ERC20授权数据和实际跨链交易数据的过程。
-*   **实时的状态跟踪**：方便地根据OKX内部交易ID查询跨链交易的进展。
-*   **清晰的错误处理**：通过自定义的 `APIError` 异常，提供具体的错误信息。
-*   **模块化设计**：各功能模块职责分明，易于理解和扩展。
-
-## 5. "智能路由"策略探讨
-
-本SDK的"智能路由"主要依赖于OKX DEX跨链API中 `/quote` 接口内置的X-Routing算法。该算法旨在聚合多个DEX和跨链桥的流动性，自动计算最优路径。
-
-SDK将通过以下方式辅助增强路由发现：
-
-*   **参数组合的灵活性**：`Quoter` 模块允许用户传入所有 `/quote` API支持的参数，包括滑点、接收地址、gasPrice、报价类型、偏好（价格/速度）等，以便进行精细化的询价。
-*   **结果的完整解析**：SDK确保从 `/quote` API返回的所有潜在路由信息（如果API支持返回多个选项，通常返回一个列表，第一个为最优）都能被完整捕获和呈现给用户。
-*   **辅助用户决策**：虽然SDK本身不主动进行过于复杂的路径分段查询（因为这已是X-Routing的职责），但它提供了必要的信息获取工具（如 `AssetExplorer`），用户可以结合这些信息和 `Quoter` 的结果，制定自己的高级路由策略。
-
-## 6. 使用方法
-
-以下是如何使用本SDK进行跨链操作的基本流程和代码示例。
-
-**安装 (假设未来发布到PyPI):**
+### 1. 克隆项目
 ```bash
-# pip install okx-crosschain-sdk
-```
-目前请直接将 `okx_crosschain_sdk` 目录放置在您的项目路径下。
-
-**6.1 初始化SDK模块:**
-
-```python
-from okx_crosschain_sdk import (
-    Config,
-    AssetExplorer,
-    Quoter,
-    TransactionBuilder,
-    StatusTracker,
-    APIError
-)
-
-# 使用默认配置初始化各个模块
-# config = Config() # 如果需要修改默认配置，可以先创建Config实例
-# asset_explorer = AssetExplorer(config=config)
-# quoter = Quoter(config=config)
-# tx_builder = TransactionBuilder(config=config)
-# status_tracker = StatusTracker(config=config)
-
-# 或者直接使用默认配置
-asset_explorer = AssetExplorer()
-quoter = Quoter()
-tx_builder = TransactionBuilder()
-status_tracker = StatusTracker()
-
-print("OKX Cross-Chain SDK 初始化完毕!")
+git clone https://github.com/Kris77z/cross-chain-router.git
+cd cross-chain-router
 ```
 
-**6.2 获取基础信息 (可选):**
+### 2. 后端设置
+```bash
+cd backend
+python -m venv venv
+source venv/bin/activate  # Windows: venv\Scripts\activate
+pip install -r requirements.txt
 
-```python
-try:
-    print("\n--- 1. 获取支持的链信息 ---")
-    supported_chains = asset_explorer.get_supported_chains()
-    if supported_chains:
-        print(f"获取到 {len(supported_chains)} 条支持的链。例如: {supported_chains[0].get('chainName')}")
-        # for chain in supported_chains:
-        #     print(f"  - {chain.get('chainName')} (ID: {chain.get('chainId')})")
-
-        # 获取第一条链的代币列表作为示例
-        example_chain_id = supported_chains[0].get('chainId')
-        if example_chain_id:
-            print(f"\n--- 2. 获取链 {supported_chains[0].get('chainName')} (ID: {example_chain_id}) 的代币列表 ---")
-            tokens_on_chain = asset_explorer.get_token_list(chain_id=example_chain_id)
-            if tokens_on_chain:
-                print(f"获取到 {len(tokens_on_chain)} 种代币。例如: {tokens_on_chain[0].get('tokenSymbol')}")
-            else:
-                print(f"链 {example_chain_id} 上没有代币或获取失败。")
-    else:
-        print("未能获取支持的链列表。")
-
-except APIError as e:
-    print(f"获取基础信息时发生API错误: {e}")
+# 启动后端服务
+uvicorn main:app --reload --port 3001
 ```
 
-**6.3 进行跨链询价:**
+### 3. 前端设置
+```bash
+cd frontend
+npm install
 
+# 启动前端开发服务器
+npm run dev
+```
+
+### 4. 访问应用
+- **前端应用**：http://localhost:3000
+- **后端API**：http://localhost:3001
+- **API文档**：http://localhost:3001/docs
+- **ReDoc文档**：http://localhost:3001/redoc
+
+## 📋 功能详情
+
+### 支持的区块链网络
+- **以太坊生态**：Ethereum、Optimism、Arbitrum、Base、zkSync Era、Linea、Scroll
+- **BSC生态**：BNB Chain
+- **Polygon生态**：Polygon
+- **Avalanche生态**：Avalanche C-Chain
+- **其他主流链**：Solana、TRON、Aptos、SUI、Manta Pacific、Metis等
+
+### 支持的桥协议
+- **LayerZero系列**：Stargate、LayerZero
+- **多链桥**：Multichain、Cbridge
+- **专业桥**：Hop、Across、Synapse
+- **新兴桥**：Bridgers、ButterSwap、MetaPath
+
+### 路由排序算法
+1. **最优排序**：综合考虑接收数量、费用、时间的最佳平衡
+2. **最快排序**：按预估交易时间排序，适合急需完成的交易
+3. **数量最多排序**：按接收代币数量排序，追求最大收益
+
+### 费用计算
+- **Gas费用**：区块链网络处理交易的费用
+- **桥接费用**：跨链桥协议收取的服务费用
+- **总费用**：所有费用的汇总，精确到小数点后3位
+
+## 🔧 配置说明
+
+### 环境变量配置
+创建 `backend/.env.local` 文件（可选，用于API认证）：
+```env
+# OKX API 配置（可选，用于高级功能）
+OKX_API_KEY=your_api_key
+OKX_SECRET_KEY=your_secret_key
+OKX_PASSPHRASE=your_passphrase
+
+# 服务配置
+API_BASE_URL=https://www.okx.com
+API_TIMEOUT=30
+```
+
+### API端点说明
+
+#### 链信息 API
+- `GET /api/v1/chains/` - 获取支持的链列表
+- `GET /api/v1/chains/{from_chain_id}/supported-targets` - 获取支持的目标链
+
+#### 代币信息 API
+- `GET /api/v1/tokens/{chain_id}` - 获取特定链的代币列表
+- 支持参数：`limit`（数量限制）、`search`（搜索关键词）
+
+#### 询价 API
+- `POST /api/v1/quote/` - 获取跨链交易报价
+- **特性**：一次请求获取所有路由，前端智能排序
+- **返回数据**：包含桥logo、代币logo、费用分解、路径步骤
+
+#### 交易构建 API
+- `POST /api/v1/transaction/build` - 构建跨链交易
+- `POST /api/v1/transaction/approve` - 构建授权交易
+
+#### 状态追踪 API
+- `GET /api/v1/status/{tx_hash}` - 查询交易状态
+
+## 🎯 使用指南
+
+### 基本使用流程
+1. **选择源链和目标链**：从支持的区块链网络中选择
+2. **选择代币**：选择要转移的源代币和目标代币
+3. **输入金额**：指定转移数量
+4. **获取报价**：系统自动获取多个路由的报价
+5. **选择路由**：根据需求选择最适合的路由
+6. **查看详情**：
+   - 点击路径图标查看详细步骤
+   - 点击费用图标查看费用分解
+7. **执行交易**：确认交易参数并执行
+
+### 高级功能
+- **滑点设置**：可调整滑点容忍度（默认0.5%）
+- **路由排序**：支持三种排序模式切换
+- **代币搜索**：支持按名称或地址搜索代币
+- **交易状态追踪**：实时查看交易进度
+
+## 🔒 安全特性
+
+- ✅ **滑点保护**：防止价格滑点超出预期
+- ✅ **最小接收数量**：保证最低接收数量
+- ✅ **安全评级**：显示每个路由的安全评级
+- ✅ **交易预估**：准确的时间和费用预估
+- ✅ **多重验证**：多个桥协议的路由验证
+- ✅ **错误处理**：完善的错误捕获和处理机制
+
+## 📊 项目统计
+
+### 代码规模
+- **总代码行数**：约 3000+ 行
+- **前端组件**：1190 行 (CrossChainBridge.tsx)
+- **后端API**：137 行 (main.py) + 路由模块
+- **SDK封装**：1000+ 行 (完整的Python SDK)
+- **文档**：685 行 (SDK文档) + 项目文档
+
+### 功能覆盖
+- **支持链数量**：20+ 主流区块链
+- **支持桥协议**：10+ 跨链桥
+- **API端点**：15+ RESTful API
+- **UI组件**：基于shadcn/ui的完整组件库
+
+## 🛠️ 开发说明
+
+### 添加新的区块链网络
+1. 在 `okx_crosschain_sdk/asset_explorer.py` 中添加链信息
+2. 在前端 `FALLBACK_CHAIN_ICONS` 中添加链图标
+3. 更新 `NATIVE_TOKENS` 映射
+
+### 添加新的桥协议
+在 `backend/routers/quote.py` 中的 `BRIDGE_LOGOS` 字典添加：
 ```python
-# 替换为实际的测试参数
-YOUR_WALLET_ADDRESS = "0xYourWalletAddressHere" # 非常重要：替换为您的测试钱包地址
-
-quote_params = {
-    "from_chain_id": "1",  # Ethereum
-    "to_chain_id": "10",   # Optimism
-    "from_token_address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48", # USDC on Ethereum
-    "to_token_address": "0x7F5c764cBc14f9669B88837ca1490cCa17c31607",   # USDC on Optimism
-    "amount": "1000000",  # 1 USDC (假设USDC是6位小数)
-    "user_address": YOUR_WALLET_ADDRESS,
-    "slippage": "0.5", # 0.5%
-    # "preference": "speed" # 可选：偏好速度或价格
+BRIDGE_LOGOS = {
+    "new_bridge": "https://newbridge.com/logo.png",
+    # ... 其他桥
 }
-
-selected_route = None # 用于存储选中的路由信息
-
-try:
-    print(f"\n--- 3. 进行跨链询价 ({quote_params.get('from_token_address')} -> {quote_params.get('to_token_address')}) ---")
-    available_routes = quoter.get_quote(**quote_params)
-    
-    if available_routes:
-        selected_route = available_routes[0] # 通常API返回的第一个是推荐/最优路由
-        print(f"成功获取到 {len(available_routes)} 条路由报价。")
-        print(f"  最优路由预计通过 {selected_route.get('bridgeName')} 桥接。")
-        print(f"  发送 {selected_route.get('fromTokenAmount')} {selected_route.get('fromTokenSymbol")} "
-              f"预计收到: {selected_route.get('estimatedAmount')} {selected_route.get('toTokenSymbol')}")
-        print(f"  预计总费用 (USD): {selected_route.get('totalFeeUsd')}")
-        print(f"  是否需要授权: {selected_route.get('transactionData', {}).get('needApprove')}")
-    else:
-        print("未能找到可用的跨链路由报价。")
-
-except APIError as e:
-    print(f"询价时发生API错误: {e}")
-except ValueError as e:
-    print(f"询价参数错误: {e}")
 ```
 
-**6.4 获取交易数据 (授权和执行):**
-
-```python
-approve_calldata = None
-built_tx_calldata = None
-okx_internal_tx_id = None # 用于后续状态查询
-
-if selected_route:
-    try:
-        # 6.4.1 获取授权交易数据 (如果需要)
-        # 注意: selected_route['transactionData']['needApprove'] 在实际路由数据中获取
-        if selected_route.get("transactionData", {}).get("needApprove") is True:
-            print("\n--- 4.1 获取ERC20授权交易数据 ---")
-            # 这里的 route_data 就是上面询价得到的 selected_route
-            approve_data = tx_builder.get_approve_transaction_data(route_data=selected_route)
-            print(f"  授权交易发送到 (代币合约): {approve_data.get('to')}")
-            print(f"  授权交易数据 (calldata): {approve_data.get('data')[:60]}...")
-            approve_calldata = approve_data # 保存以备后续模拟发送
-            # 在实际应用中, 你需要将此 approve_data 签名并发送到源链网络
-            # 然后等待交易确认，获取授权交易的哈希 (approve_tx_hash)
-            mock_approve_tx_hash = "0x_mock_approve_tx_hash_for_testing" # 模拟
-            print(f"  (模拟) 授权交易已发送，哈希: {mock_approve_tx_hash}")
-        else:
-            print("\n--- 4.1 此路由无需ERC20授权或已授权 ---")
-            mock_approve_tx_hash = None # 无需授权，则无授权哈希
-
-        # 6.4.2 获取构建实际跨链交易的数据
-        print("\n--- 4.2 获取构建实际跨链交易数据 ---")
-        # 这里的 route_data 仍然是 selected_route
-        # 如果有授权，可以将授权交易的 txId (哈希) 传给 build-tx 接口
-        build_tx_data = tx_builder.get_build_transaction_data(
-            route_data=selected_route,
-            approve_tx_id=mock_approve_tx_hash # 如果上一步有授权哈希，则传入
-            # gas_price="25000000000" # 可选：自定义gasPrice (单位: wei)
-        )
-        print(f"  实际跨链交易发送到 (路由合约): {build_tx_data.get('to')}")
-        print(f"  交易金额 (value): {build_tx_data.get('value')}")
-        print(f"  交易数据 (calldata): {build_tx_data.get('data')[:60]}...")
-        print(f"  建议 Gas Price: {build_tx_data.get('gasPrice')}")
-        print(f"  建议 Gas Limit: {build_tx_data.get('gasLimit')}")
-        okx_internal_tx_id = build_tx_data.get('txId') # OKX内部订单ID，用于状态查询
-        if okx_internal_tx_id:
-            print(f"  获取到OKX内部交易ID (用于状态查询): {okx_internal_tx_id}")
-        built_tx_calldata = build_tx_data # 保存以备后续模拟发送
-        # 在实际应用中, 你需要将此 built_tx_data 签名并发送到源链网络
-        # print("  (模拟) 实际跨链交易已发送!")
-
-    except APIError as e:
-        print(f"获取交易数据时发生API错误: {e}")
-    except ValueError as e:
-        print(f"获取交易数据时参数错误: {e}")
+### 自定义排序逻辑
+在前端 `sortQuotes` 函数中添加新的排序类型：
+```typescript
+case "custom":
+  sorted.sort((a, b) => {
+    // 自定义排序逻辑
+    return customSortLogic(a, b);
+  });
+  break;
 ```
 
-**6.5 查询交易状态:**
+## 📈 性能优化
 
-```python
-if okx_internal_tx_id:
-    try:
-        print(f"\n--- 5. 查询交易状态 (OKX内部txId: {okx_internal_tx_id}) ---")
-        # 实际中可能需要轮询查询状态
-        import time
-        time.sleep(5) # 等待几秒钟让后台处理
-        
-        status_info = status_tracker.get_transaction_status(tx_id=okx_internal_tx_id)
-        
-        if status_info:
-            print(f"  当前交易状态: {status_info.get('state')}")
-            print(f"  源链交易哈希: {status_info.get('fromTxHash')}")
-            print(f"  目标链交易哈希: {status_info.get('toTxHash')}")
-            print(f"  发送金额: {status_info.get('sendAmount')} {status_info.get('fromTokenSymbol')}")
-            print(f"  接收金额: {status_info.get('receiveAmount')} {status_info.get('toTokenSymbol')}")
-        else:
-            print("未能获取到该交易的明确状态信息 (可能仍在处理或ID有误)。")
-            
-    except APIError as e:
-        print(f"查询交易状态时发生API错误: {e}")
-    except ValueError as e:
-        print(f"查询交易状态时参数错误: {e}")
-else:
-    print("\n--- 5. 未能获取OKX内部交易ID，无法查询状态 ---")
+- 🚀 **代币列表缓存**：避免重复API请求
+- ⚡ **前端排序**：减少后端计算压力
+- 🎯 **智能错误处理**：优雅的错误恢复机制
+- 📱 **响应式图片**：自适应图片加载
+- 🔄 **优雅降级**：图片加载失败时的文字显示
 
+## 🐛 故障排除
+
+### 常见问题
+
+1. **代币列表为空**
+   - 检查链ID是否正确
+   - 确认网络连接正常
+   - 查看后端日志：`uvicorn main:app --log-level debug`
+
+2. **报价获取失败**
+   - 验证代币地址格式
+   - 检查金额是否合理
+   - 确认链之间支持跨链
+
+3. **图片加载失败**
+   - 应用会自动降级显示文字
+   - 检查网络连接
+   - 确认图片URL有效性
+
+### 调试模式
+```bash
+# 后端调试
+cd backend
+uvicorn main:app --reload --log-level debug --port 3001
+
+# 前端调试
+cd frontend
+npm run dev -- --turbopack
 ```
 
-## 7. 开发语言与环境
+## 🚧 开发路线图
 
-*   主要开发语言：Python 3.7+ (使用了f-string和类型提示)
-*   运行环境：Python 3.7+
-*   主要依赖： `requests` (用于HTTP请求)。 请通过 `pip install requests` 安装。
+### 即将推出
+- [ ] 钱包连接集成
+- [ ] 交易历史记录
+- [ ] 价格图表显示
+- [ ] 多语言支持
+- [ ] 移动端App
 
-## 8. API认证说明
+### 长期规划
+- [ ] DeFi协议集成
+- [ ] NFT跨链支持
+- [ ] 高级交易策略
+- [ ] 社区治理功能
 
-当前版本的SDK主要针对OKX DEX跨链API中不需要复杂头部认证（如签名、时间戳等）的公开端点。
-OKX的某些其他API（例如，一些特定链的DEX Swap API的Node.js示例中）可能需要 `OK-ACCESS-KEY`, `OK-ACCESS-SIGN` 等头部进行认证。
-如果未来发现跨链API的某些端点或特定场景也需要此类认证，SDK的 `http_client` 模块和 `Config` 类将需要扩展以支持生成这些认证头部。
-目前，SDK的 `http_client` 中已预留相关注释位置。
+## 🤝 贡献指南
 
-## 9. 贡献与反馈
+1. Fork 项目
+2. 创建功能分支 (`git checkout -b feature/AmazingFeature`)
+3. 提交更改 (`git commit -m 'Add some AmazingFeature'`)
+4. 推送到分支 (`git push origin feature/AmazingFeature`)
+5. 开启 Pull Request
 
-欢迎对本项目提出改进建议、报告问题或贡献代码。
-*   问题反馈：请通过 [GitHub Issues (待创建)] 提交。
-*   贡献代码：请遵循标准的 Fork & Pull Request 流程。
+### 代码规范
+- **前端**：遵循 ESLint 配置
+- **后端**：遵循 PEP 8 规范
+- **提交信息**：使用语义化提交格式
+
+## 📄 许可证
+
+本项目采用 MIT 许可证 - 查看 [LICENSE](LICENSE) 文件了解详情。
+
+## 🙏 致谢
+
+- [OKX](https://www.okx.com/) - 提供强大的DEX API
+- [Next.js](https://nextjs.org/) - React 框架
+- [FastAPI](https://fastapi.tiangolo.com/) - 现代Python Web框架
+- [Tailwind CSS](https://tailwindcss.com/) - CSS框架
+- [shadcn/ui](https://ui.shadcn.com/) - UI组件库
+- [Radix UI](https://www.radix-ui.com/) - 无障碍UI组件
+
+## 📞 联系方式
+
+- **GitHub**：[Kris77z/cross-chain-router](https://github.com/Kris77z/cross-chain-router)
+- **Issues**：[提交问题](https://github.com/Kris77z/cross-chain-router/issues)
+- **Discussions**：[参与讨论](https://github.com/Kris77z/cross-chain-router/discussions)
 
 ---
-*免责声明：本项目为非官方SDK，依赖于OKX提供的公开API。API的可用性和功能变更由OKX决定。使用者应自行承担使用本SDK的风险。交易涉及风险，请谨慎操作。* 
+
+**⚠️ 免责声明**：本项目仅用于学习和开发目的。在生产环境中使用前，请确保充分测试并了解相关风险。跨链交易涉及资金风险，请谨慎操作。 
